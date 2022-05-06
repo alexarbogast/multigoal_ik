@@ -1,15 +1,19 @@
-from sys import float_info
 
 class IKParams:
     def __init__(self):
+        # IKParallel parameters
+        self.solver_class_name = "IKGradient"
+        
         # Problem parameters
-        self.dpos, self.drot, self.dtwist = float_info.max, float_info.max, 1e-5 
+        self.dpos, self.drot, self.dtwist = float('inf'), float('inf'), 1e-5 
 
 
 class IKBase:
-    def __init__(self, robot, ik_params):
-        self.robot = robot
+    def __init__(self, fk_model, ik_params):
+        self.robot = fk_model
         self.params = ik_params
+
+        self.problem = None
 
     def initialize(self, problem):
         self.problem = problem
@@ -25,8 +29,8 @@ class IKFactory():
         return subclass
 
     @classmethod
-    def create(cls, solver_type, robot, ik_params):
+    def create(cls, solver_type, fk_model, ik_params):
         if solver_type not in cls.subclasses:
             raise ValueError(f"Bad solver type {solver_type}")
 
-        return cls.subclasses[solver_type](robot, ik_params)
+        return cls.subclasses[solver_type](fk_model, ik_params)
