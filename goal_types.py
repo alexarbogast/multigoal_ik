@@ -1,4 +1,5 @@
 import numpy as np
+from spatialmath import Quaternion
 
 from .goal import Goal, GoalContext
 
@@ -36,7 +37,25 @@ class PositionGoal(LinkGoalBase):
         self._position = pos
 
     def evaluate(self, context):
-        #TODO: evaulte position contraint
+        #TODO: evaluate position contraint
+        return 0
+
+
+class OrientationGoal(LinkGoalBase):
+    def __init__(self, orientation = Quaternion(), link_name = "", weight = 1.0):
+        self._orientation = orientation
+        super(OrientationGoal, self).__init__(link_name, weight)
+
+    @property
+    def orientation(self):
+        return self._orientation
+
+    @orientation.setter
+    def orientation(self, orientation):
+        self._orientation = orientation
+
+    def evaluate(self, context):
+        #TODO: evaluate orientation constraint
         return 0
 
 

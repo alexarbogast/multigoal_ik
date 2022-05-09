@@ -1,14 +1,12 @@
-from multigoal_ik import GoalContext
+from enum import Enum
 
+from multigoal_ik import GoalContext
+from multigoal_ik.goal_types import OrientationGoal, PositionGoal
 
 class Problem:
     def __init__(self, robot, goals, ik_params, timeout=None):
         self._params = ik_params
         self._robot = robot
-
-        self._dpos = self._params.dpos
-        self._drot = self._params.drot
-        self._dtwist = self._params.dtwist
         
         self.goals = []
         self.secondary_goals = []
@@ -41,6 +39,12 @@ class Problem:
             for var_idx in goal_info.goal_context._goal_variable_indices:
                 addActiveVariable(var_idx)
 
+            # TODO: add goal type and initialize frame
+            if isinstance(goal_info.goal, PositionGoal):
+                goal_info.goal_type = Problem.GoalType.Position
+            elif isinstance(goal_info.goal, OrientationGoal):
+                goal_info.goal_type = Problem.GoalType.Orientation
+
             if goal_info.goal_context.secondary:
                 self.secondary_goals.append(goal_info)
             else: 
@@ -61,7 +65,7 @@ class Problem:
                 g.goal_context._problem_active_variables = self.active_varaibles
                 g.goal_context._problem_tip_link_names = self.problem_tip_link_names
     
-    def computeGoalFitness(self, goals, tip_frames, active_variable_positions):
+    def computeGoalFitness(self, goals, tip_frames, active_variable_positions, weighted=True):
         if not type(goals) is list:
             goals = [goals]
 
@@ -69,9 +73,34 @@ class Problem:
         for goal_info in goals:
             goal_info.goal_context._tip_link_frames = tip_frames
             goal_info.goal_context._active_variable_positions_ = active_variable_positions
-            sum += goal_info.goal.evaluate(goal_info.goal_context)
+
+            weight = goal_info.weight_sq if weighted else 1
+            sum += goal_info.goal.evaluate(goal_info.goal_context) * weight
 
         return sum
+
+    def checkSolutionActiveVariables(self, tip_frames, active_variable_positions):
+        # check if position, orientation, and pose goals are met
+        for goal in self.goals:
+            if goal.goal_type == Problem.GoalType.Position:
+                if self._params.dpos is not None:
+                    p_dist = self.computeGoalFitness(goal, tip_frames, active_variable_positions, weighted=False)
+                    if not p_dist <= self._params.dpos: return False
+
+            elif goal.goal_type == Problem.GoalType.Orientation:
+                pass
+            elif goal.goal_type == Problem.GoalType.Pose:
+                pass
+            else:
+                pass
+
+        return True
+            
+    class GoalType(Enum):
+        Unknown = 0
+        Position = 1
+        Orientation = 2
+        Pose = 3
 
     class GoalInfo:
         def __init__(self, goal):
@@ -79,3 +108,4 @@ class Problem:
             self.goal_context = GoalContext()
             self.weight = goal.weight
             self.weight_sq = self.weight * self.weight
+            self.goal_type = Problem.GoalType.Unknown

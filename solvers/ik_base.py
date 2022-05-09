@@ -5,18 +5,34 @@ class IKParams:
         self.solver_class_name = "IKGradient"
         
         # Problem parameters
-        self.dpos, self.drot, self.dtwist = float('inf'), float('inf'), 1e-5 
+        self.dpos, self.drot, self.dtwist = None, None, 1e-5 
 
 
 class IKBase:
     def __init__(self, fk_model, ik_params):
-        self.robot = fk_model
+        self.model = fk_model
         self.params = ik_params
 
         self.problem = None
 
     def initialize(self, problem):
         self.problem = problem
+
+    def step(self):
+        raise NotImplementedError()
+
+    def getSolution(self):
+        raise NotImplementedError()
+
+    def checkSolution(self, variable_positions):
+        self.model.applyConfiguration(variable_positions)
+        frame_dict = self.model.active_frame_dict
+
+        self.problem.checkSolutionActiveVariables(frame_dict, variable_positions)
+
+        success = True
+        fitness = 1
+        return success, fitness
 
 
 # dynamically instantiate solvers registered with decorators
