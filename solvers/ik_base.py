@@ -9,14 +9,15 @@ class IKParams:
 
 
 class IKBase:
-    def __init__(self, fk_model, ik_params):
-        self.model = fk_model
+    def __init__(self, robot_info, ik_params):
+        self.robot_info = robot_info
         self.params = ik_params
 
         self.problem = None
 
     def initialize(self, problem):
         self.problem = problem
+        self.robot_info.initialize(problem.tip_link_names)
 
     def step(self):
         raise NotImplementedError()
@@ -24,15 +25,23 @@ class IKBase:
     def getSolution(self):
         raise NotImplementedError()
 
+    def extractActiveVariables(self, variable_positions):
+        # TODO: implement this
+        return variable_positions
+
     def checkSolution(self, variable_positions):
-        self.model.applyConfiguration(variable_positions)
-        frame_dict = self.model.active_frame_dict
+        self.robot_info.applyConfiguration(variable_positions)
+        frame_dict = self.robot_info.active_frame_dict
 
-        self.problem.checkSolutionActiveVariables(frame_dict, variable_positions)
+        success = self.problem.checkSolutionActiveVariables(frame_dict, self.extractActiveVariables(variable_positions))
+        return success
 
-        success = True
-        fitness = 1
-        return success, fitness
+    def computeFitness(self, variable_positions):
+        self.robot_info.applyConfiguration(variable_positions)
+        frame_dict = self.robot_info.active_frame_dict
+
+        fit = self.problem.computeGoalFitness(self.problem.goals, frame_dict, self.extractActiveVariables(variable_positions))
+        return fit
 
 
 # dynamically instantiate solvers registered with decorators

@@ -1,18 +1,22 @@
 from enum import Enum
+import numpy as np
 
 from multigoal_ik import GoalContext
 from multigoal_ik.goal_types import OrientationGoal, PositionGoal
 
 class Problem:
-    def __init__(self, robot, goals, ik_params, timeout=None):
-        self._params = ik_params
+    def __init__(self, robot, goals, ik_params, initial_guess, timeout=None):
         self._robot = robot
+        self._params = ik_params
+        self.initial_guess = initial_guess
+        self.timeout = timeout
         
         self.goals = []
         self.secondary_goals = []
 
         self.tip_link_names = []
         self.active_variables = [] # indices of joints
+
 
         def addActiveVariable(var_idx):
             if not var_idx in self.active_variables:
@@ -83,9 +87,10 @@ class Problem:
         # check if position, orientation, and pose goals are met
         for goal in self.goals:
             if goal.goal_type == Problem.GoalType.Position:
+                print(self._params.dpos)
                 if self._params.dpos is not None:
                     p_dist = self.computeGoalFitness(goal, tip_frames, active_variable_positions, weighted=False)
-                    if not p_dist <= self._params.dpos: return False
+                    if not np.sqrt(p_dist) <= self._params.dpos: return False
 
             elif goal.goal_type == Problem.GoalType.Orientation:
                 pass

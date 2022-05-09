@@ -1,8 +1,8 @@
 from spatialmath import SE3
 
-class RobotFK:
+class RobotInfo:
     '''
-    RobotFK: helper class for finding problem link transformation 
+    RobotInfo: helper class for finding problem link transformation 
     given a python robotics_toolbox robot model
     '''
     def __init__(self, rtb_robot):
@@ -22,3 +22,12 @@ class RobotFK:
     def applyConfiguration(self, q):
         for name in self.active_frame_dict:
             self._active_frame_dict[name] = SE3(self.robot.fkine(q, end = name, fast=True))
+
+    # clip input joint variable (value: j, index: i) between joint limits
+    def clip(self, j, i):
+        def clamp(num, min_value, max_value):
+            return max(min(num, max_value), min_value)
+        
+        limits = self.robot.qlim[:, i]
+        return clamp(j, limits[0], limits[1])
+        

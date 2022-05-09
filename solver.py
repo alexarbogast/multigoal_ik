@@ -4,7 +4,7 @@ from .problem import Problem
 from .solvers import IKParams
 from .solvers.ik_parallel import IKParallel
 
-from .solvers.forward_kinematics import RobotFK
+from .solvers.robot_info import RobotInfo
 
 class MultiGoalIKSolver:
     def __init__(self, robot, ik_params=None):
@@ -13,7 +13,7 @@ class MultiGoalIKSolver:
 
         self.ikparams = ik_params
         self.robot = robot
-        self.fk_model = RobotFK(self.robot)
+        self.fk_model = RobotInfo(self.robot)
 
         self.ikparams = ik_params
         self.state = np.zeros(self.fk_model.n_vars)
@@ -24,10 +24,12 @@ class MultiGoalIKSolver:
         if not seed_state.size == self.state.size:
             raise ValueError(f"seed size: {seed_state.size} differs from state size: {self.state.size}")
 
-        state = seed_state
-        problem = Problem(self.robot, goals, self.ikparams)
+        initial_guess = seed_state
+        problem = Problem(self.robot, goals, self.ikparams, initial_guess)
 
         self.ik.initialize(problem)
         solution = self.ik.solve()
 
         # TODO: wrap angles
+
+        #return (solution, self.ik.)

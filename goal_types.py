@@ -25,7 +25,7 @@ class LinkGoalBase(Goal):
 
 class PositionGoal(LinkGoalBase):
     def __init__(self, position = np.zeros(3), link_name = "", weight = 1.0):
-        self._position = position
+        self._position = position # in model baseframe
         super(PositionGoal, self).__init__(link_name, weight)
 
     @property
@@ -37,8 +37,8 @@ class PositionGoal(LinkGoalBase):
         self._position = pos
 
     def evaluate(self, context):
-        #TODO: evaluate position contraint
-        return 0
+        dist_vec = self._position - context.getProblemLinkFrame(self.link_name).t
+        return np.square(dist_vec).sum()
 
 
 class OrientationGoal(LinkGoalBase):

@@ -34,6 +34,7 @@ class IKParallel:
 
         # TODO: Add timeout condition
         # is this actually faster that single threading?
+        i = 0
         while not self.finished:
             if self.finished: break
 
@@ -48,16 +49,15 @@ class IKParallel:
 
             # get solution and check stop criterion
             result = self.solver.getSolution()
-            success, fitness = self.solver.checkSolution(result)
+            success = self.solver.checkSolution(result)
 
             if success: self.finished = True
             self.solver_success = success
             self.solver_solutions = result
-            self.solver_fitness = fitness
+            self.solver_fitness = self.solver.computeFitness(result)
 
-            # if success: break
-            break
-
+            if success: break
+            
 
     def solve(self):
         self.best_fitness = float('inf')
@@ -67,4 +67,7 @@ class IKParallel:
         self.success = False
 
         self._solverthread(0)
+
+        if self.solver_success:
+            print("we did it")
         return 0 

@@ -33,8 +33,8 @@ class GoalContext:
     def addLink(self, link_name):
         self._goal_link_names.append(link_name)
 
-    def getProblemLinkFrame(self, i):
-        return self._tip_link_frames(i)
+    def getProblemLinkFrame(self, link_name):
+        return self._tip_link_frames[link_name]
         
 
 class Goal:
