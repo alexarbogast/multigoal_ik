@@ -68,6 +68,8 @@ class IKParallel:
 
         self._solverthread(0)
 
-        if self.solver_success:
-            print("we did it")
-        return 0 
+        self.result = self.solver_solutions
+        self.best_fitness = self.solver_fitness
+        self.success = self.solver_success
+
+        return (self.result, self.best_fitness, self.success)

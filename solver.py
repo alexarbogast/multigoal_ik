@@ -24,12 +24,12 @@ class MultiGoalIKSolver:
         if not seed_state.size == self.state.size:
             raise ValueError(f"seed size: {seed_state.size} differs from state size: {self.state.size}")
 
-        initial_guess = seed_state
+        initial_guess = np.copy(seed_state)
         problem = Problem(self.robot, goals, self.ikparams, initial_guess)
 
         self.ik.initialize(problem)
-        solution = self.ik.solve()
+        result, fitness, success = self.ik.solve()
 
         # TODO: wrap angles
 
-        #return (solution, self.ik.)
+        return result, fitness, success
