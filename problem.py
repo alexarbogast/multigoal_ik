@@ -87,7 +87,6 @@ class Problem:
         # check if position, orientation, and pose goals are met
         for goal in self.goals:
             if goal.goal_type == Problem.GoalType.Position:
-                print(self._params.dpos)
                 if self._params.dpos is not None:
                     p_dist = self.computeGoalFitness(goal, tip_frames, active_variable_positions, weighted=False)
                     if not np.sqrt(p_dist) <= self._params.dpos: return False
@@ -97,7 +96,10 @@ class Problem:
             elif goal.goal_type == Problem.GoalType.Pose:
                 pass
             else:
-                pass
+                dmax = min([self._params.dpos, self._params.dtwist])
+                dmax = 0.001
+                d = self.computeGoalFitness(goal, tip_frames, active_variable_positions, weighted=False)
+                if not d < dmax * dmax: return False
 
         return True
             
